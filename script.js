@@ -14,7 +14,7 @@
     //model: A variable to store the TensorFlow.js model.
     //train(): An asynchronous function that prepares the data (as tensors) for training, including one-hot encoding the labels, and then trains the model using the collected samples.
 //building the model
-    //buildModel(): A function to construct the TensorFlow.js model architecture, including depthwise convolutional and dense layers. - Defines the model architecture using TensorFlow.js layers, including depthwise convolutional and dense layers.
+    //buildModel(): A function to construct the TenAsorFlow.js model architecture, including depthwise convolutional and dense layers. - Defines the model architecture using TensorFlow.js layers, including depthwise convolutional and dense layers.
     //buildModel(): Constructs a sequential neural network model with a specific architecture suitable for processing the audio data. This includes convolutional and dense layers, with the final output layer having as many units as there are labels to classify.
 //Utility Functions
     //toggleButtons(enable): Enables or disables buttons on the web page, typically used during training to prevent additional input.
@@ -222,14 +222,16 @@ const labelIds = [
 //   }
 //   updateExampleCountUI();  // Update the UI after all files are processed
 // }
-async function loadLabel(numericLabel, files) {
-  for (let file of files) {
-      let audioBuffer = await file.arrayBuffer();
-      let tensor = await convertToTensor(audioBuffer);
-      examples.push({vals: tensor, label: numericLabel}); // Add to your training examples
-  }
-  updateExampleCountUI(); //update UI to show how many examples have been loaded
-}
+
+
+// async function loadLabel(numericLabel, files) {
+//   for (let file of files) {
+//       let audioBuffer = await file.arrayBuffer();
+//       let tensor = await convertToTensor(audioBuffer);
+//       examples.push({vals: tensor, label: numericLabel}); // Add to your training examples
+//   }
+//   updateExampleCountUI(); //update UI to show how many examples have been loaded
+// }
 
 async function calculateNormalizationParameters() {//call before training to compute mean and deviation from laoded data
   let allData = [];
@@ -261,18 +263,79 @@ function updateExampleCountUI() {
   });
 }
 
-
-async function convertToTensor(audioBuffer) {
-  // Decode the audio to a tensor
-  const waveform = await tf.audio.decodeWav(new Uint8Array(audioBuffer), {desiredSamples: 44100});
-  // You might need to adjust the number of samples or the way you handle the audio
-  
-  // Convert the waveform to a spectrogram
-  const spectrogram = tf.signal.stft(waveform, 1024, 256);
-  const magnitudeSpectrogram = tf.abs(spectrogram).sum(2);
-  const normalizedSpectrogram = normalize(magnitudeSpectrogram); // Use your existing normalize function
-  return normalizedSpectrogram;
+function normalizeT(tensor) {
+  const mean = -100;
+  const std = 10;
+  return tensor.sub(mean).div(std);
 }
+
+// async function convertToTensor(audioBuffer) {
+//   // Decode the audio to a tensor
+//   const waveform = await tf.audio.decodeWav(new Uint8Array(audioBuffer), {desiredSamples: 44100});
+//   // You might need to adjust the number of samples or the way you handle the audio
+  
+//   // Convert the waveform to a spectrogram
+//   const spectrogram = tf.signal.stft(waveform, 1024, 256);
+//   const magnitudeSpectrogram = tf.abs(spectrogram).sum(2);
+//   const normalizedSpectrogram = normalize(magnitudeSpectrogram); // Use your existing normalize function
+//   return normalizedSpectrogram;
+// }
+// Assuming the audioContext is defined globally or made available in scope.
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+// async function convertToTensor(audioBuffer) {
+//   // Decode audio using the Web Audio API
+//   const audioData = await audioContext.decodeAudioData(audioBuffer.slice(0));
+
+//   // Create a tensor from the audio data
+//   const channelData = audioData.getChannelData(0); // Get the first channel (mono)
+//   const frameSize = 1024; // Frame size for short-time Fourier transform (STFT)
+//   const tensor = tf.tensor1d(channelData); // Create a 1D tensor from the channel data
+
+//   // Compute the STFT to get the spectrogram
+//   const stftConfig = { frameLength: frameSize, frameStep: 256, fftLength: frameSize };
+//   const spectrogram = tf.signal.stft(tensor, stftConfig.frameLength, stftConfig.frameStep, stftConfig.fftLength);
+
+//   // Compute the magnitude of the spectrogram
+//   const magnitudeSpectrogram = tf.abs(spectrogram);
+
+//   // Normalize the spectrogram
+//   const normalizedSpectrogram = normalize(magnitudeSpectrogram); // Use your existing normalize function
+//   return normalizedSpectrogram;
+// }
+async function convertToTensor(audioBuffer) {
+  // Decode audio using the Web Audio API
+  const audioData = await audioContext.decodeAudioData(audioBuffer.slice(0));
+
+  // Create a tensor from the audio data
+  const channelData = audioData.getChannelData(0); // Get the first channel (mono)
+  const tensor = tf.tensor1d(channelData); // Create a 1D tensor from the channel data
+
+  // Compute the STFT to get the spectrogram
+  const frameSize = 1024; // Frame size for short-time Fourier transform (STFT)
+  const stftConfig = { frameLength: frameSize, frameStep: 256, fftLength: frameSize };
+  const spectrogram = tf.signal.stft(tensor, stftConfig.frameLength, stftConfig.frameStep, stftConfig.fftLength);
+
+  // Compute the magnitude of the spectrogram
+  const magnitudeSpectrogram = tf.abs(spectrogram);
+
+  // Normalize the spectrogram
+  return normalizeT(magnitudeSpectrogram); // Use the updated normalize function
+}
+
+
+
+async function loadLabel(numericLabel, files) {
+  for (let file of files) {
+      let audioBuffer = await file.arrayBuffer();
+      let normalizedTensor = await convertToTensor(audioBuffer);
+      let vals = normalizedTensor.dataSync(); // Convert tensor back to array to match structure used in examples
+      examples.push({vals: vals, label: numericLabel}); // Add to your training examples
+      labelCounts[numericLabel] += 1; // Update label counts
+  }
+  updateExampleCountUI(); // Update UI to show how many examples have been loaded
+}
+
 
 
 async function save () {
