@@ -190,15 +190,7 @@ function listen() {
    invokeCallbackOnNoiseAndUnknown: true
  });
 }
-// document.getElementById('load-files').addEventListener('click', async () => {
-//   let files = document.getElementById('file-input').files;
-//   for (let file of files) {
-//       let audioBuffer = await file.arrayBuffer();
-//       let tensor = await convertToTensor(audioBuffer);
-//       label = 
-//       examples.push({vals: tensor, label: 0}); // Adjust the label as needed
-//   }
-// });
+
  
 const labelIds = [
   "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1", 
@@ -207,31 +199,6 @@ const labelIds = [
   "Y1", "Z1", "Apple1", "Bird1", "Boat1", "Butterfly1", 
   "Car1", "Dog1", "Cat1", "Horse1", "Train1", "Noise1"
 ];
-// async function loadLabel(numericLabel, files){
-//   const elementId = labels[numericLabel]; // Get the correct ID from the array
-//   let files = document.getElementById(elementId).files;
-//   if (files.length === 0) {
-//     console.log("No files selected.");
-//     return;
-//   }
-//   for (let file of files) {
-//     let audioBuffer = await file.arrayBuffer();
-//     let tensor = await convertToTensor(audioBuffer);
-//     examples.push({vals: tensor, label: numericLabel}); // Adjust the label as needed
-//     labelCounts[numericLabel] += 1;  // Increment the count for the label
-//   }
-//   updateExampleCountUI();  // Update the UI after all files are processed
-// }
-
-
-// async function loadLabel(numericLabel, files) {
-//   for (let file of files) {
-//       let audioBuffer = await file.arrayBuffer();
-//       let tensor = await convertToTensor(audioBuffer);
-//       examples.push({vals: tensor, label: numericLabel}); // Add to your training examples
-//   }
-//   updateExampleCountUI(); //update UI to show how many examples have been loaded
-// }
 
 async function calculateNormalizationParameters() {//call before training to compute mean and deviation from laoded data
   let allData = [];
@@ -245,8 +212,8 @@ async function calculateNormalizationParameters() {//call before training to com
   dataTensor.dispose();
   updateExampleCountUI();
 }
-let labelCounts = new Array(36).fill(0);  // Assuming you have 36 labels, from 0 to 35
 
+let labelCounts = new Array(36).fill(0);  // Assuming you have 36 labels, from 0 to 35
 function updateExampleCountUI() {
   const consoleDiv = document.getElementById('console');
   consoleDiv.innerHTML = '';  // Clear previous contents
@@ -269,19 +236,46 @@ function normalizeT(tensor) {
   return tensor.sub(mean).div(std);
 }
 
-// async function convertToTensor(audioBuffer) {
-//   // Decode the audio to a tensor
-//   const waveform = await tf.audio.decodeWav(new Uint8Array(audioBuffer), {desiredSamples: 44100});
-//   // You might need to adjust the number of samples or the way you handle the audio
-  
-//   // Convert the waveform to a spectrogram
-//   const spectrogram = tf.signal.stft(waveform, 1024, 256);
-//   const magnitudeSpectrogram = tf.abs(spectrogram).sum(2);
-//   const normalizedSpectrogram = normalize(magnitudeSpectrogram); // Use your existing normalize function
-//   return normalizedSpectrogram;
-// }
-// Assuming the audioContext is defined globally or made available in scope.
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+async function convertToTensor(audioBuffer) {
+  const audioData = await audioContext.decodeAudioData(audioBuffer.slice(0));
+  const channelData = audioData.getChannelData(0); // Assuming mono audio
+  const tensor = tf.tensor1d(channelData);
+
+  // Modify these parameters to match your model's input dimensions
+  const targetFrames = 6;
+  const targetFrequencyBins = 232;
+  const frameSize = 1024; // This should be adjusted based on your audio's characteristics
+  const fftLength = 1024; // Usually the same as frameSize unless specific reasons
+  const frameStep = Math.floor(channelData.length / targetFrames); // Adjust frameStep to get the required number of frames
+
+  // Perform STFT
+  const spectrogram = tf.signal.stft(tensor, frameSize, frameStep, fftLength);
+  let magnitudeSpectrogram = tf.abs(spectrogram);
+
+  // If the spectrogram shape does not match, you may need to slice or pad it
+  const numFrames = magnitudeSpectrogram.shape[0];
+  const numBins = magnitudeSpectrogram.shape[1];
+
+  if (numBins !== targetFrequencyBins) {
+      // Slice the frequency bins if more or pad if less
+      const startBin = Math.floor((numBins - targetFrequencyBins) / 2);
+      magnitudeSpectrogram = magnitudeSpectrogram.slice([0, startBin], [-1, targetFrequencyBins]);
+  }
+
+  if (numFrames > targetFrames) {
+      // Slice excess frames
+      magnitudeSpectrogram = magnitudeSpectrogram.slice([0, 0], [targetFrames, -1]);
+  } else if (numFrames < targetFrames) {
+      // Pad with zeros if there are fewer frames
+      const padding = tf.zeros([targetFrames - numFrames, targetFrequencyBins]);
+      magnitudeSpectrogram = tf.concat([magnitudeSpectrogram, padding], 0);
+  }
+
+  // Ensure the tensor is of shape [1, 6, 232, 1]
+  return magnitudeSpectrogram.expandDims(0).expandDims(-1);
+}
+
 
 // async function convertToTensor(audioBuffer) {
 //   // Decode audio using the Web Audio API
@@ -289,10 +283,10 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 //   // Create a tensor from the audio data
 //   const channelData = audioData.getChannelData(0); // Get the first channel (mono)
-//   const frameSize = 1024; // Frame size for short-time Fourier transform (STFT)
 //   const tensor = tf.tensor1d(channelData); // Create a 1D tensor from the channel data
 
 //   // Compute the STFT to get the spectrogram
+//   const frameSize = 1024; // Frame size for short-time Fourier transform (STFT)
 //   const stftConfig = { frameLength: frameSize, frameStep: 256, fftLength: frameSize };
 //   const spectrogram = tf.signal.stft(tensor, stftConfig.frameLength, stftConfig.frameStep, stftConfig.fftLength);
 
@@ -300,30 +294,8 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 //   const magnitudeSpectrogram = tf.abs(spectrogram);
 
 //   // Normalize the spectrogram
-//   const normalizedSpectrogram = normalize(magnitudeSpectrogram); // Use your existing normalize function
-//   return normalizedSpectrogram;
+//   return normalizeT(magnitudeSpectrogram); // Use the updated normalize function
 // }
-async function convertToTensor(audioBuffer) {
-  // Decode audio using the Web Audio API
-  const audioData = await audioContext.decodeAudioData(audioBuffer.slice(0));
-
-  // Create a tensor from the audio data
-  const channelData = audioData.getChannelData(0); // Get the first channel (mono)
-  const tensor = tf.tensor1d(channelData); // Create a 1D tensor from the channel data
-
-  // Compute the STFT to get the spectrogram
-  const frameSize = 1024; // Frame size for short-time Fourier transform (STFT)
-  const stftConfig = { frameLength: frameSize, frameStep: 256, fftLength: frameSize };
-  const spectrogram = tf.signal.stft(tensor, stftConfig.frameLength, stftConfig.frameStep, stftConfig.fftLength);
-
-  // Compute the magnitude of the spectrogram
-  const magnitudeSpectrogram = tf.abs(spectrogram);
-
-  // Normalize the spectrogram
-  return normalizeT(magnitudeSpectrogram); // Use the updated normalize function
-}
-
-
 
 async function loadLabel(numericLabel, files) {
   for (let file of files) {
@@ -335,8 +307,6 @@ async function loadLabel(numericLabel, files) {
   }
   updateExampleCountUI(); // Update UI to show how many examples have been loaded
 }
-
-
 
 async function save () {
     await model.save('downloads://my-model');
