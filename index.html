@@ -49,7 +49,7 @@
   <button id="X" onmousedown="collect(23)" onmouseup="collect(null)">X</button>
   <button id="Y" onmousedown="collect(24)" onmouseup="collect(null)">Y</button>
   <button id="Z" onmousedown="collect(25)" onmouseup="collect(null)">Z</button>
-  <button id="Apple" onmousedown="collect(26)" onmouseup="collect(null)">Apple</button>
+  <!-- <button id="Apple" onmousedown="collect(26)" onmouseup="collect(null)">Apple</button>
   <button id="Bird" onmousedown="collect(27)" onmouseup="collect(null)">Bird</button>
   <button id="Boat" onmousedown="collect(28)" onmouseup="collect(null)">Boat</button>
   <button id="Butterfly" onmousedown="collect(29)" onmouseup="collect(null)">Butterfly</button>
@@ -57,8 +57,8 @@
   <button id="Dog" onmousedown="collect(31)" onmouseup="collect(null)">Dog</button>
   <button id="Cat" onmousedown="collect(32)" onmouseup="collect(null)">Cat</button>
   <button id="Horse" onmousedown="collect(33)" onmouseup="collect(null)">Horse</button>
-  <button id="Train" onmousedown="collect(34)" onmouseup="collect(null)">Train</button>
-  <button id="Noise" onmousedown="collect(35)" onmouseup="collect(null)">Noise</button>
+  <button id="Train" onmousedown="collect(34)" onmouseup="collect(null)">Train</button> -->
+  <button id="Noise" onmousedown="collect(26)" onmouseup="collect(null)">Noise</button>
   <br /><br />
   <!-- File Inputs for Each Class -->
   <p>.wav upload training (files less than 2-3s best)</p>
@@ -88,7 +88,7 @@
   <input type="file" id="input-X" multiple accept=".wav" style="display:none;" onchange="loadLabel(23, this.files)">
   <input type="file" id="input-Y" multiple accept=".wav" style="display:none;" onchange="loadLabel(24, this.files)">
   <input type="file" id="input-Z" multiple accept=".wav" style="display:none;" onchange="loadLabel(25, this.files)">
-  <input type="file" id="input-Apple" multiple accept=".wav" style="display:none;" onchange="loadLabel(26, this.files)">
+  <!-- <input type="file" id="input-Apple" multiple accept=".wav" style="display:none;" onchange="loadLabel(26, this.files)">
   <input type="file" id="input-Bird" multiple accept=".wav" style="display:none;" onchange="loadLabel(27, this.files)">
   <input type="file" id="input-Boat" multiple accept=".wav" style="display:none;" onchange="loadLabel(28, this.files)">
   <input type="file" id="input-Butterfly" multiple accept=".wav" style="display:none;"onchange="loadLabel(29, this.files)">
@@ -96,8 +96,8 @@
   <input type="file" id="input-Dog" multiple accept=".wav" style="display:none;" onchange="loadLabel(31, this.files)">
   <input type="file" id="input-Cat" multiple accept=".wav" style="display:none;" onchange="loadLabel(32, this.files)">
   <input type="file" id="input-Horse" multiple accept=".wav" style="display:none;" onchange="loadLabel(33, this.files)">
-  <input type="file" id="input-Train" multiple accept=".wav" style="display:none;" onchange="loadLabel(34, this.files)">
-  <input type="file" id="input-Noise" multiple accept=".wav" style="display:none;" onchange="loadLabel(35, this.files)">
+  <input type="file" id="input-Train" multiple accept=".wav" style="display:none;" onchange="loadLabel(34, this.files)"> -->
+  <input type="file" id="input-Noise" multiple accept=".wav" style="display:none;" onchange="loadLabel(26, this.files)">
  
   <!-- Corresponding Buttons for Each Class -->
   <button id="A1" onclick="document.getElementById('input-A').click()">Load A Files</button>
@@ -126,7 +126,7 @@
   <button id="X1" onclick="document.getElementById('input-X').click()">Load X Files</button>
   <button id="Y1" onclick="document.getElementById('input-Y').click()">Load Y Files</button>
   <button id="Z1" onclick="document.getElementById('input-Z').click()">Load Z Files</button>
-  <button id="Apple1" onclick="document.getElementById('input-Apple').click()">Load Apple Files</button>
+  <!-- <button id="Apple1" onclick="document.getElementById('input-Apple').click()">Load Apple Files</button>
   <button id="Bird1" onclick="document.getElementById('input-Bird').click()">Load Bird Files</button>
   <button id="Boat1" onclick="document.getElementById('input-Boat').click()">Load Boat Files</button>
   <button id="Butterfly1" onclick="document.getElementById('input-Butterfly').click()">Load Butterfly Files</button>
@@ -135,7 +135,7 @@
   <button id="Cat1" onclick="document.getElementById('input-Cat').click()">Load Cat Files</button>
   <button id="Horse1" onclick="document.getElementById('input-Horse').click()">Load Horse Files</button>
   <button id="Train1" onclick="document.getElementById('input-Train').click()">Load Train Files</button>
-  <button id="Noise1" onclick="document.getElementById('input-Noise').click()">Load Noise Files</button>
+  <button id="Noise1" onclick="document.getElementById('input-Noise').click()">Load Noise Files</button> -->
   <br /><br />
   <p>actions</p>
   <button id="normalize" onclick="calcualteNormalizationParameters()">calc .wav Normalization Parameters</button>

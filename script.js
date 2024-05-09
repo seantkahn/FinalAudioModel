@@ -90,7 +90,7 @@ let model;
 async function train() {
  toggleButtons(false);
  // Set the corresponding ys of the labels. - number of classes/labels
- const ys = tf.oneHot(examples.map(e => e.label), 36);
+ const ys = tf.oneHot(examples.map(e => e.label), 27);
  const xsShape = [examples.length, ...INPUT_SHAPE];
  const xs = tf.tensor(flatten(examples.map(e => e.vals)), xsShape);
  //The training goes 10 times (epochs) over the data using a batch size of 16 (processing 16 examples at a time) and shows the current accuracy in the UI:
@@ -123,7 +123,7 @@ function buildModel() {
  model.add(tf.layers.maxPooling2d({poolSize: [1, 2], strides: [2, 2]}));
  model.add(tf.layers.flatten());
  //change units to number of classes for training
- model.add(tf.layers.dense({units: 36, activation: 'softmax'}));
+ model.add(tf.layers.dense({units: 27, activation: 'softmax'}));
   //We compile our model to get it ready for training:
   //We use the Adam optimizer and the categorical crossentropy loss function, which is suitable for multiclass classification problems.
  //We use the Adam optimizer, a common optimizer used in deep learning, and categoricalCrossEntropy for loss, the standard loss function used for classification. 
@@ -152,8 +152,7 @@ var labels = [
     "A", "B", "C", "D", "E", "F", "G", "H", 
     "I", "J", "K", "L", "M", "N", "O", "P", 
     "Q", "R", "S", "T", "U", "V", "W", "X", 
-    "Y", "Z", "Apple", "Bird", "Boat", "Butterfly", 
-    "Car", "Dog", "Cat", "Horse", "Train", "Noise"
+    "Y", "Z","Noise"
   ];
 async function finish(labelTensor) {
  const label = (await labelTensor.data())[0];
@@ -213,7 +212,7 @@ async function calculateNormalizationParameters() {//call before training to com
   updateExampleCountUI();
 }
 
-let labelCounts = new Array(36).fill(0);  // Assuming you have 36 labels, from 0 to 35
+let labelCounts = new Array(27).fill(0);  // Assuming you have 36 labels, from 0 to 35
 function updateExampleCountUI() {
   const consoleDiv = document.getElementById('console');
   consoleDiv.innerHTML = '';  // Clear previous contents
@@ -313,7 +312,7 @@ async function save () {
 }
 async function loadNewModel() {
       // TensorFlow.js expects an object mapping names to URLs for the weight files
-  const model = await tf.loadLayersModel('"C:\Users\Seank\OneDrive\Desktop\Models\my-model.json"');
+  const model = await tf.loadLayersModel('my-model.json');
     await model.ensureModelLoaded();
       // TensorFlow.js expects an object mapping names to URLs for the weight files
     buildModel();
