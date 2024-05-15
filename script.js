@@ -30,6 +30,7 @@
     //save(): Demonstrates how to load a model from a specified URL. This might be intended for loading a pre-trained model, although in this context, it seems more appropriate as a placeholder or example of how to implement model loading.
 //2 5 6 8 9 11
 
+//adjust frame size and batch size and epocjs for testing try 
 let recognizer;
 async function app() {
  recognizer = speechCommands.create('BROWSER_FFT');
@@ -195,8 +196,7 @@ const labelIds = [
   "A1", "B1", "C1", "D1", "E1", "F1", "G1", "H1", 
   "I1", "J1", "K1", "L1", "M1", "N1", "O1", "P1", 
   "Q1", "R1", "S1", "T1", "U1", "V1", "W1", "X1", 
-  "Y1", "Z1", "Apple1", "Bird1", "Boat1", "Butterfly1", 
-  "Car1", "Dog1", "Cat1", "Horse1", "Train1", "Noise1"
+  "Y1", "Z1", "Noise1"
 ];
 
 async function calculateNormalizationParameters() {//call before training to compute mean and deviation from laoded data
